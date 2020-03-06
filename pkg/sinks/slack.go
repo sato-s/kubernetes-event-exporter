@@ -8,10 +8,11 @@ import (
 )
 
 type SlackConfig struct {
-	Token   string            `yaml:"token"`
-	Channel string            `yaml:"channel"`
-	Message string            `yaml:"message"`
-	Fields  map[string]string `yaml:"fields"`
+	Token    string            `yaml:"token"`
+	Channel  string            `yaml:"channel"`
+	Message  string            `yaml:"message"`
+	Username string            `yaml:"username"`
+	Fields   map[string]string `yaml:"fields"`
 }
 
 type SlackSink struct {
@@ -38,6 +39,12 @@ func (s *SlackSink) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 	}
 
 	options := []slack.MsgOption{slack.MsgOptionText(message, true)}
+
+	username, err := GetString(ev, s.cfg.Message)
+	if err == nil {
+		options = append(options, slack.MsgOptionUsername(username))
+	}
+
 	if s.cfg.Fields != nil {
 		fields := make([]slack.AttachmentField, 0)
 		for k, v := range s.cfg.Fields {
